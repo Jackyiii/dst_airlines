@@ -10,6 +10,8 @@ import pandas as pd
 import json
 import configuration.authentificationConfig as authentificationConfig
 
+#tahirou_test
+
 # Étape 1: Obtenir un jeton d'accès
 url_token = "https://api.lufthansa.com/v1/oauth/token"
 
