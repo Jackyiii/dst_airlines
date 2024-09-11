@@ -4,16 +4,16 @@ Created on Mon Aug 12 08:04:15 2024
 
 @author: tahir
 """
-#ceci est un commentaire de herman
+
 import requests
 import pandas as pd
 import json
-import configuration.authentificationConfig as authentificationConfig
-
-#tahirou_test
-
 # Étape 1: Obtenir un jeton d'accès
 url_token = "https://api.lufthansa.com/v1/oauth/token"
+
+# Informations pour l'authentification
+client_id = 'keyd3czmh46e4vcf4b5kuyf9u'
+client_secret = 'aqPzY9Qvfk'
 
 # Configuration de la requête pour obtenir le token
 headers = {
@@ -21,8 +21,8 @@ headers = {
 }
 
 data = {
-    'client_id': authentificationConfig.client_id,
-    'client_secret': authentificationConfig.client_secret,
+    'client_id': client_id,
+    'client_secret': client_secret,
     'grant_type': 'client_credentials',
 }
 
@@ -40,7 +40,7 @@ else:
 # Étape 2: Faire une requête GET pour obtenir des données de vol
 
 
-# 1-données pays
+                                 #1-données pays
 
 
 # Jeton d'accès (obtenu précédemment)
@@ -61,7 +61,6 @@ headers = {
 
 # Initialisation d'une liste pour stocker toutes les données des pays
 all_country_info = []
-
 
 # Fonction pour effectuer une requête GET et traiter les données
 def fetch_country_data(url):
@@ -95,7 +94,6 @@ def fetch_country_data(url):
     else:
         print(f"Erreur lors de la récupération des données du vol pour {url}. Code statut: {response.status_code}")
 
-
 # Itérer sur chaque URL et récupérer les données
 for url in urls:
     fetch_country_data(url)
@@ -112,10 +110,10 @@ print(f"Nombre total de colonnes: {country_df.shape[1]}")
 
 # verifier le languageCode le plus frequent en fonction des pays
 print(country_df.groupby(country_df['CountryCode']).count())
-# a=country_df.groupby(country_df['CountryCode']).count()
-# b=country_df.loc[country_df['CountryCode'] == 'KP']
+#a=country_df.groupby(country_df['CountryCode']).count()
+#b=country_df.loc[country_df['CountryCode'] == 'KP']
 
-# Verifions si pour chaqque countryCode on n'a "EN" comme langue en commune avec d'autres pays
+#Verifions si pour chaqque countryCode on n'a "EN" comme langue en commune avec d'autres pays
 
 # Grouper par CountryCode et vérifier la présence de 'EN'
 countries_with_en = country_df.groupby('CountryCode').apply(
@@ -133,15 +131,17 @@ df_with_en_language = country_df[country_df['CountryCode'].isin(countries_with_e
 
 # Afficher le DataFrame filtré
 print("\nDataFrame with countries having 'EN' as a language:\n", df_with_en_language)
-# prendre que les ligne ayant un languageCode="EN"
-country_df_final_lang_en = df_with_en_language.loc[df_with_en_language['LanguageCode'] == 'EN']
+ #prendre que les ligne ayant un languageCode="EN"
+country_df_final_lang_en=df_with_en_language.loc[df_with_en_language['LanguageCode']=='EN']
 display(country_df_final_lang_en.head())
 
-# données villes
+                      
 
-
+                                   # données villes
+                                   
+                                   
 # Jeton d'accès (obtenu précédemment)
-# access_token = 'nbav65rex3h56dkz6bhykqve'
+#access_token = 'nbav65rex3h56dkz6bhykqve'
 
 # Liste des URLs des endpoints
 urls = [
@@ -159,14 +159,13 @@ headers = {
 # Initialisation d'une liste pour stocker toutes les données des villes
 all_city_info = []
 
-
 # Fonction pour effectuer une requête GET et traiter les données
 def fetch_city_data(url):
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         city_data = response.json()
         data_info = city_data['CityResource']['Cities']['City']
-
+       
         # Extraire les informations pour chaque ville
         for city in data_info:
             city_code = city.get('CityCode', None)
@@ -176,7 +175,7 @@ def fetch_city_data(url):
 
             # Extraire les noms dans différentes langues
             names = city['Names']['Name']
-
+            
             # Vérifier si 'names' est une liste ou un dictionnaire
             if isinstance(names, dict):
                 names = [names]
@@ -194,7 +193,7 @@ def fetch_city_data(url):
             for name_entry in names:
                 language_code = name_entry.get('@LanguageCode', None)
                 city_name = name_entry.get('$', None)
-
+                
                 for airport_code in airport_codes:
                     all_city_info.append({
                         'CountryCode': country_code,
@@ -206,7 +205,6 @@ def fetch_city_data(url):
                         'AirportCode': airport_code
                     })
 
-
 # Itérer sur chaque URL et récupérer les données
 for url in urls:
     fetch_city_data(url)
@@ -217,16 +215,17 @@ city_df = pd.DataFrame(all_city_info)
 # Afficher le DataFrame
 print(city_df.head())
 
+
 # Vérifier les dimensions du DataFrame
 print(f"Nombre total de lignes: {city_df.shape[0]}")
 print(f"Nombre total de colonnes: {city_df.shape[1]}")
 
 # verifier le languageCode le plus frequent en fonction des pays
 print(city_df.groupby(city_df['LanguageCode']).count())
-# a=city_df.groupby(city_df['CountryCode']).count()
-# b=city_df.loc[city_df['CountryCode'] == 'AD']
+#a=city_df.groupby(city_df['CountryCode']).count()
+#b=city_df.loc[city_df['CountryCode'] == 'AD']
 
-# Verifions si pour chaqque countryCode on n'a "EN" comme langue en commune avec d'autres pays
+#Verifions si pour chaqque countryCode on n'a "EN" comme langue en commune avec d'autres pays
 
 # Grouper par CountryCode et vérifier la présence de 'EN'
 cities_with_en = city_df.groupby('CountryCode').apply(
@@ -244,17 +243,24 @@ df_with_en_language = city_df[city_df['CountryCode'].isin(cities_with_en)]
 
 # Afficher le DataFrame filtré
 print("\nDataFrame with countries having 'EN' as a language:\n", df_with_en_language)
-# prendre que les ligne ayant un languageCode="EN"
-city_df_final_lang_en = df_with_en_language.loc[df_with_en_language['LanguageCode'] == 'EN']
+ #prendre que les ligne ayant un languageCode="EN"
+city_df_final_lang_en=df_with_en_language.loc[df_with_en_language['LanguageCode']=='EN']
 display(city_df_final_lang_en.head())
 
-# données Aéroports
+
+
+                                 #données Aéroports
+#"https://api.lufthansa.com/v1/mds-references/airports/?LHoperated=0",
+#   "https://api.lufthansa.com/v1/mds-references/airports/?LHoperated=0&offset=20&limit=20",
+#    "https://api.lufthansa.com/v1/mds-references/airports/?LHoperated=0&offset=11840&limit=20"
+                                 
+                                 
 
 # Liste des URLs des endpoints
 urls = [
-    "https://api.lufthansa.com/v1/mds-references/airports/?LHoperated=1",
-    "https://api.lufthansa.com/v1/mds-references/airports/?LHoperated=0&offset=20&limit=20",
-    "https://api.lufthansa.com/v1/mds-references/airports/?LHoperated=0&offset=11840&limit=20"
+   "https://api.lufthansa.com/v1/mds-references/airports/?limit=100&offset=0&LHoperated=1&group=AllAirports",
+  "https://api.lufthansa.com/v1/mds-references/airports/?limit=100&offset=100&LHoperated=1&group=AllAirports",
+  "https://api.lufthansa.com/v1/mds-references/airports/?limit=100&offset=1400&LHoperated=1&group=AllAirports"
 ]
 
 # Configuration de l'en-tête avec le jeton d'accès
@@ -263,7 +269,6 @@ headers = {
     'Accept': 'application/json',
 }
 
-
 # Fonction pour effectuer une requête GET et traiter les données
 def fetch_airport_data(url):
     response = requests.get(url, headers=headers)
@@ -271,7 +276,7 @@ def fetch_airport_data(url):
         airport_data = response.json()
         data_info = airport_data['AirportResource']['Airports']['Airport']
         airport_info = []
-
+        
         # Extraire les informations pour chaque aéroport
         for airport in data_info:
             airport_code = airport.get('AirportCode', None)
@@ -283,7 +288,7 @@ def fetch_airport_data(url):
 
             # Extraire les noms dans différentes langues
             names = airport['Names']['Name']
-
+            
             # Vérifier si 'names' est une liste ou un dictionnaire
             if isinstance(names, dict):
                 names = [names]
@@ -292,7 +297,7 @@ def fetch_airport_data(url):
             position = airport['Position']['Coordinate']
             latitude = position.get('Latitude', None)
             longitude = position.get('Longitude', None)
-
+            
             for name_entry in names:
                 language_code = name_entry.get('@LanguageCode', None)
                 airport_name = name_entry.get('$', None)
@@ -314,7 +319,6 @@ def fetch_airport_data(url):
         print("Erreur lors de la récupération des données des aéroports", "Code de statut:", response.status_code)
         return []
 
-
 # Initialiser une liste pour stocker toutes les données des aéroports
 all_airport_info = []
 
@@ -325,16 +329,23 @@ for url in urls:
 # Créer un DataFrame à partir des informations
 airport_df = pd.DataFrame(all_airport_info)
 
+airport_df_uniq=airport_df['AirportCode'].unique()
+airport_df_uniq=pd.DataFrame(airport_df_uniq)
 # Afficher le DataFrame
 print(airport_df)
 print(airport_df.groupby(airport_df['LanguageCode']).count())
 
-# afficher les données avec un codelangagene anglais
-airport_df_en = airport_df.loc[airport_df['LanguageCode'] == 'EN']
-
-# données compagnies aeriennes
+#afficher les données avec un codelangagene anglais
+airport_df_en=airport_df.loc[airport_df['LanguageCode']=='EN']
 
 
+
+
+
+                        #données compagnies aeriennes
+                    
+  
+                  
 # URLs pour obtenir les données des Compagnies aériennes
 urls = [
     "https://api.lufthansa.com/v1/mds-references/airlines/?limit=100&offset=0",
@@ -351,21 +362,20 @@ headers = {
 # Initialisation d'une liste pour stocker toutes les informations des compagnies aériennes
 all_airline_info = []
 
-
 # Fonction pour récupérer et traiter les données depuis une URL
 def fetch_airline_data(url):
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         airlines_data = response.json()
         data_info = airlines_data['AirlineResource']['Airlines']['Airline']
-
+        
         for airline in data_info:
             Airline_ID = airline.get('AirlineID', None)
             Airline_ID_ICAO = airline.get('AirlineID_ICAO', None)
-
+           
             # Extraire les noms dans différentes langues
             names = airline.get('Names', {}).get('Name', None)
-
+            
             if names:
                 # Vérifier si 'names' est une liste ou un dictionnaire
                 if isinstance(names, dict):
@@ -392,7 +402,6 @@ def fetch_airline_data(url):
     else:
         print("Erreur lors de la récupération des données des compagnies", "Code de statut:", response.status_code)
 
-
 # Itérer sur chaque URL et récupérer les données
 for url in urls:
     fetch_airline_data(url)
@@ -402,11 +411,13 @@ airline_df = pd.DataFrame(all_airline_info)
 
 # Afficher le DataFrame
 print(airline_df)
-print(airline_df.shape)
-
-# données des aeronefs
+print(airline_df.shape) 
 
 
+
+                    #données des aeronefs
+                    
+                    
 # URLs pour obtenir les données des Aéronefs
 urls = [
     "https://api.lufthansa.com/v1/mds-references/aircraft/?limit=100&offset=0",
@@ -423,21 +434,20 @@ headers = {
 # Initialisation d'une liste pour stocker toutes les informations des aéronefs
 all_aircraft_info = []
 
-
 # Fonction pour récupérer et traiter les données depuis une URL
 def fetch_aircraft_data(url):
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         aircraft_data = response.json()
         data_info = aircraft_data["AircraftResource"]['AircraftSummaries']['AircraftSummary']
-
+        
         for aircraft in data_info:
             aircraft_code = aircraft.get('AircraftCode', None)
             airline_equip_code = aircraft.get('AirlineEquipCode', None)
-
+            
             # Extraire les noms dans différentes langues
             names = aircraft.get('Names', {}).get('Name', None)
-
+            
             if names:
                 # Vérifier si 'names' est une liste ou un dictionnaire
                 if isinstance(names, dict):
@@ -464,7 +474,6 @@ def fetch_aircraft_data(url):
     else:
         print("Erreur lors de la récupération des données des aéronefs", "Code de statut:", response.status_code)
 
-
 # Itérer sur chaque URL et récupérer les données
 for url in urls:
     fetch_aircraft_data(url)
@@ -482,6 +491,7 @@ print(aircraft_df.shape)
 # Afficher les données avec un code langue spécifique (par exemple, 'FR' pour le français)
 aircraft_df_fr = aircraft_df.loc[aircraft_df['LanguageCode'] == 'FR']
 print(aircraft_df_fr)
+
 
 
                         #Flight Schedules(horaire des vols)
