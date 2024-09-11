@@ -482,3 +482,119 @@ print(aircraft_df.shape)
 # Afficher les données avec un code langue spécifique (par exemple, 'FR' pour le français)
 aircraft_df_fr = aircraft_df.loc[aircraft_df['LanguageCode'] == 'FR']
 print(aircraft_df_fr)
+
+
+                        #Flight Schedules(horaire des vols)
+
+
+
+
+# Liste des URLs pour obtenir les données des horaires des vols
+urls = [
+    "https://api.lufthansa.com/v1/operations/schedules/FRA/CDG/2024-09-08?directFlights=1&limit=100",
+    "https://api.lufthansa.com/v1/operations/schedules/FRA/CDG/2024-09-07?directFlights=1&limit=20&offset=0",
+    "https://api.lufthansa.com/v1/operations/schedules/FRA/CDG/2024-09-08?directFlights=1&limit=20&offset=20",
+    "https://api.lufthansa.com/v1/operations/schedules/FRA/CDG/2024-09-08T21:40?directFlights=1&limit=20&offset=0"
+]
+
+# Configuration de l'en-tête avec le jeton d'accès
+headers = {
+    'Authorization': f'Bearer {access_token}',
+    'Accept': 'application/json',
+}
+
+# Liste pour stocker toutes les informations des horaires
+schedules_info = []
+
+# Fonction pour récupérer et traiter les données depuis une URL
+def fetch_schedules_data(url):
+    response = requests.get(url, headers=headers)
+
+    # Vérifier si la requête a réussi
+    if response.status_code == 200:
+        try:
+            schedules_data = response.json()
+            print(f"Données récupérées avec succès depuis {url}")
+        except ValueError:
+            print(f"Erreur lors de l'analyse de la réponse JSON pour l'URL: {url}")
+            return
+    else:
+        print("Erreur lors de la récupération des données", "Code de statut:", response.status_code)
+        return  # Sortir de la fonction si la requête a échoué
+
+    # Vérifier si 'ScheduleResource' est présent dans les données et est bien un dictionnaire
+    if isinstance(schedules_data, dict) and "ScheduleResource" in schedules_data:
+        schedule_resource = schedules_data["ScheduleResource"]
+
+        # Vérifier si 'Schedule' est présent et est une liste
+        if isinstance(schedule_resource, dict) and "Schedule" in schedule_resource:
+            data_info = schedule_resource["Schedule"]
+
+            # Vérifier que 'data_info' est bien une liste
+            if isinstance(data_info, list):
+                for schedule in data_info:
+                    # Vérification supplémentaire pour s'assurer que 'schedule' est bien un dictionnaire
+                    if isinstance(schedule, dict):
+                        duration = schedule.get('TotalJourney', {}).get('Duration', None)
+                        departure_airport_code = schedule.get('Flight', {}).get('Departure', {}).get('AirportCode', None)
+                        departure_time = schedule.get('Flight', {}).get('Departure', {}).get('ScheduledTimeLocal', {}).get('DateTime', None)
+                        departure_terminal = schedule.get('Flight', {}).get('Departure', {}).get('Terminal', {}).get('Name', None)
+
+                        arrival_airport_code = schedule.get('Flight', {}).get('Arrival', {}).get('AirportCode', None)
+                        arrival_time = schedule.get('Flight', {}).get('Arrival', {}).get('ScheduledTimeLocal', {}).get('DateTime', None)
+                        arrival_terminal = schedule.get('Flight', {}).get('Arrival', {}).get('Terminal', {}).get('Name', None)
+
+                        airline_id = schedule.get('Flight', {}).get('MarketingCarrier', {}).get('AirlineID', None)
+                        flight_number = schedule.get('Flight', {}).get('MarketingCarrier', {}).get('FlightNumber', None)
+
+                        aircraft_code = schedule.get('Flight', {}).get('Equipment', {}).get('AircraftCode', None)
+                        stop_quantity = schedule.get('Flight', {}).get('Details', {}).get('Stops', {}).get('StopQuantity', None)
+                        days_of_operation = schedule.get('Flight', {}).get('Details', {}).get('DaysOfOperation', None)
+                        date_effective = schedule.get('Flight', {}).get('Details', {}).get('DatePeriod', {}).get('Effective', None)
+                        date_expiration = schedule.get('Flight', {}).get('Details', {}).get('DatePeriod', {}).get('Expiration', None)
+
+                        # Ajout des informations dans la liste
+                        schedules_info.append({
+                            'Duration': duration,
+                            'AirportCode Dep': departure_airport_code,
+                            'DateTime Dep': departure_time,
+                            'Terminal Dep': departure_terminal,
+                            'AirportCode Arr': arrival_airport_code,
+                            'DateTime Arr': arrival_time,
+                            'Terminal Arr': arrival_terminal,
+                            'AirlineID': airline_id,
+                            'FlightNumber': flight_number,
+                            'AircraftCode': aircraft_code,
+                            'StopQuantity': stop_quantity,
+                            'DaysOfOperation': days_of_operation,
+                            'Effective': date_effective,
+                            'Expiration': date_expiration
+                        })
+            else:
+                print(f"'Schedule' n'est pas une liste dans la réponse pour l'URL: {url}")
+        else:
+            print(f"'Schedule' non trouvé ou n'est pas un dictionnaire dans la réponse pour l'URL: {url}")
+    else:
+        print(f"'ScheduleResource' non trouvé ou n'est pas un dictionnaire dans la réponse pour l'URL: {url}")
+
+# Itérer sur chaque URL et récupérer les données
+for url in urls:
+    fetch_schedules_data(url)
+
+# Créer un DataFrame à partir des informations
+schedules_df = pd.DataFrame(schedules_info)
+
+# Afficher le DataFrame
+print(schedules_df)
+display(schedules_df.head())
+print("Nombre total de vols récupérés:", schedules_df.shape[0])
+
+# Créer une nouvelle colonne 'flightNumber2' en concaténant 'AirlineID' et 'FlightNumber'
+schedules_df['flightNumber2'] = schedules_df['AirlineID'].astype(str) + schedules_df['FlightNumber'].astype(str)
+
+# Créer un nouveau DataFrame schedules_df2 avec la nouvelle colonne 'flightNumber2'
+schedules_df2 = schedules_df.copy()
+
+# Afficher le nouveau DataFrame schedules_df2
+print(schedules_df2)
+display(schedules_df2.head())
