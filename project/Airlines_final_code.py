@@ -608,3 +608,105 @@ schedules_df2 = schedules_df.copy()
 # Afficher le nouveau DataFrame schedules_df2
 print(schedules_df2)
 display(schedules_df2.head())
+
+
+                               #light status 
+
+
+
+# Fonction pour extraire la date au format correct depuis 'DateTime Dep'
+def extract_date(date_str):
+    return date_str.split('T')[0]  # On prend la partie avant le 'T' pour obtenir la date
+
+# Liste pour stocker les informations des statuts de vols
+status_flight_info = []
+
+# Itérer sur chaque vol dans schedules_df
+for index, row in schedules_df.iterrows():
+    flight_number = row['flightNumber2']
+    departure_date = extract_date(row['DateTime Dep'])
+
+    # Créer l'URL dynamique en remplaçant le numéro de vol et la date
+    flight_status_url = f"https://api.lufthansa.com/v1/operations/flightstatus/{flight_number}/{departure_date}"
+
+    # Effectuer la requête GET pour récupérer les informations sur le statut du vol
+    response = requests.get(flight_status_url, headers=headers)
+
+    # Vérifier si la requête a réussi
+    if response.status_code == 200:
+        try:
+            flight_status_data = response.json()
+            print(f"Statut récupéré avec succès pour le vol {flight_number} du {departure_date}")
+        except ValueError:
+            print(f"Erreur lors de l'analyse de la réponse JSON pour le vol {flight_number} du {departure_date}")
+            continue
+    else:
+        print(f"Erreur lors de la récupération des données du statut pour le vol {flight_number} du {departure_date} : Code {response.status_code}")
+        continue
+
+    # Extraire les informations de statut pour chaque vol
+    data_info = flight_status_data.get("FlightStatusResource", {}).get("Flights", {}).get("Flight", [])
+    
+    for status in data_info:
+        # Informations sur le départ
+        departure_airport_code = status.get('Departure', {}).get('AirportCode', None)
+        departure_time_local = status.get('Departure', {}).get('ScheduledTimeLocal', {}).get('DateTime', None)
+        actual_departure_time_local = status.get('Departure', {}).get('ActualTimeLocal', {}).get('DateTime', None)
+        departure_terminal = status.get('Departure', {}).get('Terminal', {}).get('Name', None)
+        departure_gate = status.get('Departure', {}).get('Terminal', {}).get('Gate', None)
+
+        # Informations sur l'arrivée
+        arrival_airport_code = status.get('Arrival', {}).get('AirportCode', None)
+        arrival_time_local = status.get('Arrival', {}).get('ScheduledTimeLocal', {}).get('DateTime', None)
+        actual_arrival_time_local = status.get('Arrival', {}).get('ActualTimeLocal', {}).get('DateTime', None)
+        arrival_terminal = status.get('Arrival', {}).get('Terminal', {}).get('Name', None)
+        arrival_gate = status.get('Arrival', {}).get('Terminal', {}).get('Gate', None)
+
+        # Statut du temps
+        time_status_code = status.get('Departure', {}).get('TimeStatus', {}).get('Code', None)
+        time_status_definition = status.get('Departure', {}).get('TimeStatus', {}).get('Definition', None)
+
+        # Informations sur la compagnie aérienne
+        marketing_airline_id = status.get('MarketingCarrier', {}).get('AirlineID', None)
+        marketing_flight_number = status.get('MarketingCarrier', {}).get('FlightNumber', None)
+
+        # Informations sur l'équipement de l'avion
+        aircraft_code = status.get('Equipment', {}).get('AircraftCode', None)
+        aircraft_registration = status.get('Equipment', {}).get('AircraftRegistration', None)
+
+        # Statut du vol
+        flight_status_code = status.get('FlightStatus', {}).get('Code', None)
+        flight_status_definition = status.get('FlightStatus', {}).get('Definition', None)
+
+        # Ajouter toutes les informations dans la liste
+        status_flight_info.append({
+            'FlightNumber': flight_number,
+            'Departure Date': departure_date,
+            'Departure AirportCode': departure_airport_code,
+            'Scheduled Departure Local Time': departure_time_local,
+            'Actual Departure Local Time': actual_departure_time_local,
+            'Departure Terminal': departure_terminal,
+            'Departure Gate': departure_gate,
+            'Arrival AirportCode': arrival_airport_code,
+            'Scheduled Arrival Local Time': arrival_time_local,
+            'Actual Arrival Local Time': actual_arrival_time_local,
+            'Arrival Terminal': arrival_terminal,
+            'Arrival Gate': arrival_gate,
+            'Time Status Code': time_status_code,
+            'Time Status Definition': time_status_definition,
+            'Marketing Airline ID': marketing_airline_id,
+            'Marketing Flight Number': marketing_flight_number,
+            'Aircraft Code': aircraft_code,
+            'Aircraft Registration': aircraft_registration,
+            'Flight Status Code': flight_status_code,
+            'Flight Status Definition': flight_status_definition
+        })
+
+# Créer un DataFrame à partir des informations de statut des vols
+flights_status_df = pd.DataFrame(status_flight_info)
+
+# Afficher le DataFrame
+print(flights_status_df)
+display(flights_status_df.head())
+print(f"Nombre total de vols récupérés: {flights_status_df.shape[0]}")
+
