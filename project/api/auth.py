@@ -3,7 +3,7 @@ import requests
 import yaml
 from dotenv import load_dotenv
 
-from project.config.url import TOKEN_URL
+from config.url import TOKEN_URL
 
 load_dotenv()
 

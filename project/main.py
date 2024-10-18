@@ -1,11 +1,11 @@
-from project.api.data.aircraft_data import process_aircraft_data_workflow
-from project.api.data.airline_data import process_airline_data_workflow
-from project.api.data.airport_data import process_airport_data_workflow
-from project.api.auth import get_access_token
-from project.api.data.city_data import process_city_data_workflow
-from project.api.data.county_data import process_country_data_workflow
-from project.api.data.schedules_data import process_schedules_workflow
-from project.config.url import COUNTRY_DATA_URLS, CITY_DATA_URLS, AIRPORT_DATA_URLS, AIRLINE_DATA_URLS, \
+from api.data.aircraft_data import process_aircraft_data_workflow
+from api.data.airline_data import process_airline_data_workflow
+from api.data.airport_data import process_airport_data_workflow
+from api.auth import get_access_token
+from api.data.city_data import process_city_data_workflow
+from api.data.county_data import process_country_data_workflow
+from api.data.schedules_data import process_schedules_workflow
+from config.url import COUNTRY_DATA_URLS, CITY_DATA_URLS, AIRPORT_DATA_URLS, AIRLINE_DATA_URLS, \
     AIRCRAFT_DATA_URLS, DATES, DESTINATIONS, ORIGINS, generate_schedule_urls
 
 from api.data.flight_status import process_flight_status_workflow
