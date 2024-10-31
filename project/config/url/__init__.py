@@ -45,9 +45,8 @@ AIRCRAFT_DATA_URLS = [
 ]
 
 # Listes des codes d'aéroports pour les pays d'origine et de destination
-ORIGINS = ['FRA', 'MUC', 'DUS', 'HAM', 'BER']
-DESTINATIONS = ['VIE', 'ZRH', 'JFK', 'ORD', 'LAX', 'PEK', 'NRT', 'JNB']
-
+ORIGINS = ['FRA', 'MUC']
+DESTINATIONS = ['ZRH', 'JFK',  'PEK'  ]
 # Générer la liste des dates (2 jours en arrière et 5 jours en avant à partir d'aujourd'hui)
 TODAY = datetime.now()
 DATES = [(TODAY + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(-2, 6)]

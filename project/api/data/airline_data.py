@@ -64,9 +64,11 @@ def process_airline_data_workflow(headers, urls):
 
     # Create DataFrame from all airline info
     airline_df = create_airline_dataframe(all_airline_info)
-
+    print("")
+    print("4- données compagnies aeriennes")
     print(airline_df.head())
-    print(f"Total rows: {airline_df.shape[0]}")
-    print(f"Total columns: {airline_df.shape[1]}")
+    #print(f"Total rows: {airline_df.shape[0]}")
+    #print(f"Total columns: {airline_df.shape[1]}")
+    print("")
 
     return airline_df

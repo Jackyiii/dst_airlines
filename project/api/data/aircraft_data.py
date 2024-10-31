@@ -66,8 +66,11 @@ def process_aircraft_data_workflow(headers, urls):
     aircraft_df = create_aircraft_dataframe(all_aircraft_info)
 
     # 打印 DataFrame
+    print("")
+    print("5- données des aeronefs")
     print(aircraft_df.head())
-    print(f"Total rows: {aircraft_df.shape[0]}")
-    print(f"Total columns: {aircraft_df.shape[1]}")
+    #print(f"Total rows: {aircraft_df.shape[0]}")
+    #print(f"Total columns: {aircraft_df.shape[1]}")
+    print("")
 
     return aircraft_df

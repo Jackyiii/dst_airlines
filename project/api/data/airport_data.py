@@ -72,10 +72,11 @@ def process_airport_data_workflow(headers, urls):
 
     # Create DataFrame from all airport info
     airport_df = create_airport_dataframe(all_airport_info)
-
+    #exlure la colonne 'LocationType'
+   
+    print("")
+    print("3-Données Aeroports")
     print(airport_df.head())
+    print("")
 
-    airport_df_en = filter_airports_with_language(airport_df, 'EN')
-    print("\nDataFrame with airports having 'EN' as language:\n", airport_df_en)
-
-    return airport_df_en
+    return airport_df

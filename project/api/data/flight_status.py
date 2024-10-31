@@ -57,12 +57,12 @@ def process_flight_status_workflow(schedules_df, headers):
     status_flight_info = []
 
     for index, row in schedules_df.iterrows():
-        flight_number = row['flightNumber2']
+        flight_number = row['schedule_id']
         departure_date = extract_date(row['DateTime Dep'])
 
         flight_status_data = fetch_flight_status(flight_number, departure_date, headers)
 
         if flight_status_data:
             status_flight_info.extend(process_flight_status(flight_status_data, flight_number, departure_date))
-
+            
     return pd.DataFrame(status_flight_info)

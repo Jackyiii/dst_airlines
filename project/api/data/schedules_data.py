@@ -77,6 +77,7 @@ def process_schedules_workflow(headers, urls):
         schedules_df = create_schedules_dataframe(all_schedules_info)
         print(f"Total flights retrieved: {schedules_df.shape[0]}")
     else:
+        
         schedules_df = pd.DataFrame()
-
+        
     return schedules_df, failed_urls

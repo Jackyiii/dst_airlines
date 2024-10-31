@@ -69,18 +69,8 @@ def process_country_data_workflow(headers, urls):
     country_df = create_country_dataframe(all_country_info)
 
     # Print the DataFrame
-    print(country_df)
-
-    # Filter countries with 'EN' as a language
-    countries_with_en = filter_countries_with_language(country_df, 'EN')
-    print("Countries with 'EN' as a language:", countries_with_en)
-
-    # Filter DataFrame to only include countries with 'EN'
-    df_with_en_language = country_df[country_df['CountryCode'].isin(countries_with_en)]
-    print("\nDataFrame with countries having 'EN' as a language:\n", df_with_en_language)
-
-    # Filter rows with LanguageCode == 'EN'
-    country_df_final_lang_en = df_with_en_language.loc[df_with_en_language['LanguageCode'] == 'EN']
-    print(country_df_final_lang_en.head())
-
-    return country_df_final_lang_en
+    print("")
+    print('1- données pays')
+    print(country_df.head())
+    print("")
+    return country_df

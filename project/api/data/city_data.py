@@ -84,20 +84,12 @@ def process_city_data_workflow(headers, urls):
 
     # Create DataFrame from all city info
     city_df = create_city_dataframe(all_city_info)
-
+    #selection des colonnes qui nous interresse
+    city_df_used=city_df.iloc[:, 0:6]
+    print("")
+    print('2- données villes')
     # Print the DataFrame
     print(city_df.head())
-
-    # Filter cities with 'EN' as a language
-    cities_with_en = filter_cities_with_language(city_df, 'EN')
-    print("Cities with 'EN' as a language:", cities_with_en)
-
-    # Filter DataFrame to only include cities with 'EN'
-    df_with_en_language = city_df[city_df['CountryCode'].isin(cities_with_en)]
-    print("\nDataFrame with countries having 'EN' as a language:\n", df_with_en_language)
-
-    # Filter rows with LanguageCode == 'EN'
-    city_df_final_lang_en = df_with_en_language.loc[df_with_en_language['LanguageCode'] == 'EN']
-    print(city_df_final_lang_en.head())
-
-    return city_df_final_lang_en
+    print("")
+    return city_df
+ 
