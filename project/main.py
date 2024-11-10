@@ -10,14 +10,14 @@ from api.data.county_data import process_country_data_workflow
 from api.data.schedules_data import process_schedules_workflow
 from config.url import COUNTRY_DATA_URLS, CITY_DATA_URLS, AIRPORT_DATA_URLS, AIRLINE_DATA_URLS, \
     AIRCRAFT_DATA_URLS, DATES, DESTINATIONS, ORIGINS, generate_schedule_urls
-
 from api.data.flight_status import process_flight_status_workflow
-
+from config.database import get_connection, test_connection
 
 def main():
     """
     Main program execution that handles the flow of obtaining an access token and executing subsequent API calls.
     """
+    test_connection()
     access_token = get_access_token()
 
     if access_token:
