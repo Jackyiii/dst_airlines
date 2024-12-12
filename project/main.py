@@ -1,5 +1,9 @@
+
 import pandas as pd
 import requests
+import os
+from sqlalchemy import create_engine
+import psycopg2
 from io import StringIO
 from api.data.aircraft_data import process_aircraft_data_workflow
 from api.data.airline_data import process_airline_data_workflow
@@ -44,13 +48,12 @@ def main():
 
     # get aircraft data
     aircraft_df = process_aircraft_data_workflow(headers, AIRCRAFT_DATA_URLS)
-    #aircraft_df_fr = aircraft_df.loc[aircraft_df['LanguageCode'] == 'FR']
 
     # get schedules data
     urls = generate_schedule_urls(ORIGINS, DESTINATIONS, DATES)
     schedules_df, failed_urls = process_schedules_workflow(headers, urls)
     if not schedules_df.empty:
-        schedules_df['schedule_id'] = schedules_df['AirlineID'].astype(str) + schedules_df['FlightNumber'].astype(str)
+        schedules_df['ScheduleID'] = schedules_df['AirlineID'].astype(str) + schedules_df['FlightNumber'].astype(str)
         print("")
         print("6- données des horaires des vols")
         print(schedules_df.head())
@@ -60,13 +63,14 @@ def main():
         print("Les URL suivantes ont échoué :")
         for url in failed_urls:
             print(url)
+
     # get flight status data
     flights_status_df = process_flight_status_workflow(schedules_df, headers)
     print("")
     print("7- données de statut des vols")
     print(flights_status_df.head())
-    
-   # get language data
+
+    # get language data
     print("")
     print("8- données langues")
     # URL du fichier CSV contenant les codes de langue (ISO 639-1, ISO 639-2, noms de langue)
@@ -84,11 +88,11 @@ def main():
         languages_df = languages_df[languages_df['alpha2'].notna()]
         # Renommer les colonnes 'alpha2' et 'English'
         languages_df.rename(columns={
-        'alpha3-b': 'LanguageCode0',
-        'alpha3-t': 'LanguageCode1',
-        'alpha2': 'LanguageCode',
-        'English': 'LanguageName',
-        'French': 'LanguageName_fr'
+            'alpha3-b': 'LanguageCode0',
+            'alpha3-t': 'LanguageCode1',
+            'alpha2': 'LanguageCode',
+            'English': 'LanguageName',
+            'French': 'LanguageName_fr'
         }, inplace=True)
 
         # Transformer la colonne 'LanguageCode' en majuscules
@@ -283,18 +287,58 @@ def main():
 
         # Ajout de la colonne 'Region' en utilisant le dictionnaire de correspondance
         languages_df['Region'] = languages_df['LanguageCode'].map(region_mapping)
-        #selection des variables
-        languages_df=languages_df[['LanguageCode','LanguageName','Region']]
+        # selection des variables
+        languages_df = languages_df[['LanguageCode', 'LanguageName', 'Region']]
 
         # Affichage du DataFrame avec la nouvelle colonne
         print(languages_df.head())
 
         # Affichage de la forme du DataFrame et des premières lignes pour vérification
         print(languages_df.shape)
+        #Dictionnaire associant les DataFrames aux tables PostgreSQL
+        dataframes_to_tables = {
+            'country': country_df,
+            'city': city_df,
+            'airport': airport_df,
+            'airline': airline_df,
+            'aircraft': aircraft_df,
+            'schedules': schedules_df,
+            'status_flight': flights_status_df,
+            'languages': languages_df
+            }
+        # Insertion de tous les DataFrames dans leurs tables respectives
+        for table_name, dataframe in dataframes_to_tables.items():
+            insert_dataframe_to_sql(dataframe, table_name, engine)
+        print("finish execution for DataFrame insertion")
     else:
         print("Erreur lors du téléchargement du fichier CSV :", response.status_code)
 
-  
-  
+
+# Configuration des paramètres de la base de données
+#DATABASE_URL = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@db:5432/{os.getenv('POSTGRES_DB')}"
+DATABASE_URL  = 'postgresql://myuser:mypassword@db:5432/mydatabase'
+print(DATABASE_URL)
+# Créer une connexion SQLAlchemy
+engine = create_engine(DATABASE_URL)
+
+# Fonction générique pour insérer un DataFrame dans une table PostgreSQL
+def insert_dataframe_to_sql(dataframe, table_name, engine):
+    """
+    Insère un DataFrame dans une table PostgreSQL.
+    
+    Args:
+        dataframe (pd.DataFrame): Le DataFrame à insérer.
+        table_name (str): Le nom de la table cible.
+        engine: L'instance SQLAlchemy Engine pour la connexion.
+    """
+    try:
+        # Insérer les données
+        dataframe.to_sql(table_name, con=engine, if_exists='append', index=False)
+        print(f"Inserted {len(dataframe)} rows into {table_name}")
+    except Exception as e:
+        print(f"Error inserting data into {table_name}: {e}")
+
+
 if __name__ == "__main__":
     main()
+
