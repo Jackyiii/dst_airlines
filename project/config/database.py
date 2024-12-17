@@ -1,8 +1,15 @@
 import os
 import psycopg2
 
-DATABASE_URL = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@db:5432/{os.getenv('POSTGRES_DB')}"
+#from sqlalchemy import create_engine 
+#import sqlalchemy 
+from sqlalchemy import create_engine
+import pandas as pd
 
+
+
+#DATABASE_URL = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@db:5432/{os.getenv('POSTGRES_DB')}"
+DATABASE_URL  = 'postgresql://myuser:mypassword@db:5432/mydatabase'
 def get_connection():
     try:
         connection = psycopg2.connect(DATABASE_URL)

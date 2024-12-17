@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 from io import StringIO
+from sqlalchemy import create_engine
 from api.data.aircraft_data import process_aircraft_data_workflow
 from api.data.airline_data import process_airline_data_workflow
 from api.data.airport_data import process_airport_data_workflow
@@ -11,84 +12,110 @@ from api.data.schedules_data import process_schedules_workflow
 from config.url import COUNTRY_DATA_URLS, CITY_DATA_URLS, AIRPORT_DATA_URLS, AIRLINE_DATA_URLS, \
     AIRCRAFT_DATA_URLS, DATES, DESTINATIONS, ORIGINS, generate_schedule_urls
 from api.data.flight_status import process_flight_status_workflow
-from config.database import get_connection, test_connection
+
+def get_connection():
+    # Remplacez 'myuser', 'mypassword', 'mydatabase', 'localhost' par vos informations de connexion
+    return create_engine('postgresql://myuser:mypassword@localhost:5432/mydatabase')
+
+def insert_dataframe_to_table(engine, df, table_name):
+    try:
+        df.to_sql(table_name, engine, if_exists='append', index=False)
+        print(f"Data inserted successfully into {table_name}")
+    except Exception as e:
+        print(f"Error inserting data into {table_name}: {str(e)}")
+
+def ensure_utf8_encoding(df):
+    for column in df.select_dtypes(include=[object]):
+        df[column] = df[column].astype(str).apply(lambda x: x.encode('utf-8', 'ignore').decode('utf-8'))
+    return df
 
 def main():
     """
     Main program execution that handles the flow of obtaining an access token and executing subsequent API calls.
     """
-    test_connection()
+    engine = get_connection()
     access_token = get_access_token()
 
     if access_token:
         print("Access token obtained successfully!")
     else:
         print("Failed to obtain access token. Exiting program.")
+        return
 
     headers = {
         'Authorization': f'Bearer {access_token}',
         'Accept': 'application/json',
     }
 
-    # get county data
+    # get country data
     country_df = process_country_data_workflow(headers, COUNTRY_DATA_URLS)
+    country_df = ensure_utf8_encoding(country_df)
+    insert_dataframe_to_table(engine, country_df, 'countries')
 
     # get city data
     city_df = process_city_data_workflow(headers, CITY_DATA_URLS)
+    city_df = ensure_utf8_encoding(city_df)
+    insert_dataframe_to_table(engine, city_df, 'cities')
 
     # get airport data
     airport_df = process_airport_data_workflow(headers, AIRPORT_DATA_URLS)
+    airport_df = ensure_utf8_encoding(airport_df)
+    insert_dataframe_to_table(engine, airport_df, 'airports')
 
     # get airline data
     airline_df = process_airline_data_workflow(headers, AIRLINE_DATA_URLS)
+    airline_df = ensure_utf8_encoding(airline_df)
+    insert_dataframe_to_table(engine, airline_df, 'airlines')
 
     # get aircraft data
     aircraft_df = process_aircraft_data_workflow(headers, AIRCRAFT_DATA_URLS)
-    #aircraft_df_fr = aircraft_df.loc[aircraft_df['LanguageCode'] == 'FR']
+
+    # Afficher les colonnes du DataFrame pour vérification
+    print("5- données des aeronefs")
+    print(aircraft_df.columns)
+
+    # Renommer les colonnes du DataFrame pour correspondre à celles de la table PostgreSQL
+    aircraft_df.rename(columns={
+        'AircraftCode': 'aircraftcode',
+        'LanguageCode': 'languagecode',
+        'AircraftName': 'aircraftname',
+        'AirlineEquipCode': 'airlineequipcode'
+    }, inplace=True)
+
+    aircraft_df = ensure_utf8_encoding(aircraft_df)
+    insert_dataframe_to_table(engine, aircraft_df, 'aircraft')
 
     # get schedules data
     urls = generate_schedule_urls(ORIGINS, DESTINATIONS, DATES)
     schedules_df, failed_urls = process_schedules_workflow(headers, urls)
     if not schedules_df.empty:
         schedules_df['schedule_id'] = schedules_df['AirlineID'].astype(str) + schedules_df['FlightNumber'].astype(str)
-        print("")
-        print("6- données des horaires des vols")
-        print(schedules_df.head())
-        print("")
+        schedules_df = ensure_utf8_encoding(schedules_df)
+        insert_dataframe_to_table(engine, schedules_df, 'flightschedules')
 
     if failed_urls:
         print("Les URL suivantes ont échoué :")
         for url in failed_urls:
             print(url)
+
     # get flight status data
     flights_status_df = process_flight_status_workflow(schedules_df, headers)
-    print("")
-    print("7- données de statut des vols")
-    print(flights_status_df.head())
+    flights_status_df = ensure_utf8_encoding(flights_status_df)
+    insert_dataframe_to_table(engine, flights_status_df, 'flightstatus')
     
-   # get language data
-    print("")
-    print("8- données langues")
-    # URL du fichier CSV contenant les codes de langue (ISO 639-1, ISO 639-2, noms de langue)
+    # get language data
     url = "https://raw.githubusercontent.com/datasets/language-codes/main/data/language-codes-full.csv"
-    # Téléchargement du fichier CSV
     response = requests.get(url)
-    # Vérification du statut de la requête
     if response.status_code == 200:
-        # Conversion du contenu en un format lisible par Pandas
         csv_data = StringIO(response.text)
-        # Chargement des données dans un DataFrame
         languages_df = pd.read_csv(csv_data)
-    
-        # Filtrage des lignes où 'alpha2' est différent de NaN
         languages_df = languages_df[languages_df['alpha2'].notna()]
-        # Renommer les colonnes 'alpha2' et 'English'
         languages_df.rename(columns={
-        'alpha3-b': 'LanguageCode0',
-        'alpha3-t': 'LanguageCode1',
-        'alpha2': 'LanguageCode',
-        'English': 'LanguageName',
-        'French': 'LanguageName_fr'
+            'alpha3-b': 'LanguageCode0',
+            'alpha3-t': 'LanguageCode1',
+            'alpha2': 'languagecode',
+            'English': 'LanguageName',
+            'French': 'LanguageName_fr'
         }, inplace=True)
 
         # Transformer la colonne 'LanguageCode' en majuscules
@@ -281,20 +308,12 @@ def main():
         'ZU': 'Afrique (Afrique du Sud)'
         }
 
-        # Ajout de la colonne 'Region' en utilisant le dictionnaire de correspondance
-        languages_df['Region'] = languages_df['LanguageCode'].map(region_mapping)
-        #selection des variables
-        languages_df=languages_df[['LanguageCode','LanguageName','Region']]
-
-        # Affichage du DataFrame avec la nouvelle colonne
-        print(languages_df.head())
-
-        # Affichage de la forme du DataFrame et des premières lignes pour vérification
-        print(languages_df.shape)
+        languages_df['Region'] = languages_df['languagecode'].map(region_mapping)
+        languages_df = languages_df[['languagecode', 'LanguageName', 'Region']]
+        languages_df = ensure_utf8_encoding(languages_df)
+        insert_dataframe_to_table(engine, languages_df, 'languages')
     else:
         print("Erreur lors du téléchargement du fichier CSV :", response.status_code)
-
-  
   
 if __name__ == "__main__":
     main()
