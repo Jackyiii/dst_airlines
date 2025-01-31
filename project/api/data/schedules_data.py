@@ -46,19 +46,19 @@ def fetch_schedules_data(url, headers):
 def process_schedule(schedule):
     return {
         'Duration': schedule.get('TotalJourney', {}).get('Duration', None),
-        'AirportCode Dep': schedule.get('Flight', {}).get('Departure', {}).get('AirportCode', None),
-        'DateTime Dep': schedule.get('Flight', {}).get('Departure', {}).get('ScheduledTimeLocal', {}).get('DateTime', None),
-        'Terminal Dep': schedule.get('Flight', {}).get('Departure', {}).get('Terminal', {}).get('Name', None),
-        'AirportCode Arr': schedule.get('Flight', {}).get('Arrival', {}).get('AirportCode', None),
-        'DateTime Arr': schedule.get('Flight', {}).get('Arrival', {}).get('ScheduledTimeLocal', {}).get('DateTime', None),
-        'Terminal Arr': schedule.get('Flight', {}).get('Arrival', {}).get('Terminal', {}).get('Name', None),
+        'DepartureAirportCode': schedule.get('Flight', {}).get('Departure', {}).get('AirportCode', None),
+        'DepartureTime': schedule.get('Flight', {}).get('Departure', {}).get('ScheduledTimeLocal', {}).get('DateTime', None),
+        'DepartureTerminal': schedule.get('Flight', {}).get('Departure', {}).get('Terminal', {}).get('Name', None),
+        'ArrivalAirportCode': schedule.get('Flight', {}).get('Arrival', {}).get('AirportCode', None),
+        'ArrivalTime': schedule.get('Flight', {}).get('Arrival', {}).get('ScheduledTimeLocal', {}).get('DateTime', None),
+        'ArrivalTerminal': schedule.get('Flight', {}).get('Arrival', {}).get('Terminal', {}).get('Name', None),
         'AirlineID': schedule.get('Flight', {}).get('MarketingCarrier', {}).get('AirlineID', None),
         'FlightNumber': schedule.get('Flight', {}).get('MarketingCarrier', {}).get('FlightNumber', None),
         'AircraftCode': schedule.get('Flight', {}).get('Equipment', {}).get('AircraftCode', None),
         'StopQuantity': schedule.get('Flight', {}).get('Details', {}).get('Stops', {}).get('StopQuantity', None),
         'DaysOfOperation': schedule.get('Flight', {}).get('Details', {}).get('DaysOfOperation', None),
-        'Effective': schedule.get('Flight', {}).get('Details', {}).get('DatePeriod', {}).get('Effective', None),
-        'Expiration': schedule.get('Flight', {}).get('Details', {}).get('DatePeriod', {}).get('Expiration', None)
+        'EffectiveDate': schedule.get('Flight', {}).get('Details', {}).get('DatePeriod', {}).get('Effective', None),
+        'ExpirationDate': schedule.get('Flight', {}).get('Details', {}).get('DatePeriod', {}).get('Expiration', None)
     }
 
 def create_schedules_dataframe(schedules_info):

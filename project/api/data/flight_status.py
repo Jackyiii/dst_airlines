@@ -30,25 +30,25 @@ def process_flight_status(flight_status_data, flight_number, departure_date):
     for status in data_info:
         status_flight_info.append({
             'FlightNumber': flight_number,
-            'Departure Date': departure_date,
-            'Departure AirportCode': status.get('Departure', {}).get('AirportCode', None),
-            'Scheduled Departure Local Time': status.get('Departure', {}).get('ScheduledTimeLocal', {}).get('DateTime', None),
-            'Actual Departure Local Time': status.get('Departure', {}).get('ActualTimeLocal', {}).get('DateTime', None),
-            'Departure Terminal': status.get('Departure', {}).get('Terminal', {}).get('Name', None),
-            'Departure Gate': status.get('Departure', {}).get('Terminal', {}).get('Gate', None),
-            'Arrival AirportCode': status.get('Arrival', {}).get('AirportCode', None),
-            'Scheduled Arrival Local Time': status.get('Arrival', {}).get('ScheduledTimeLocal', {}).get('DateTime', None),
-            'Actual Arrival Local Time': status.get('Arrival', {}).get('ActualTimeLocal', {}).get('DateTime', None),
-            'Arrival Terminal': status.get('Arrival', {}).get('Terminal', {}).get('Name', None),
-            'Arrival Gate': status.get('Arrival', {}).get('Terminal', {}).get('Gate', None),
-            'Time Status Code': status.get('Departure', {}).get('TimeStatus', {}).get('Code', None),
-            'Time Status Definition': status.get('Departure', {}).get('TimeStatus', {}).get('Definition', None),
-            'Marketing Airline ID': status.get('MarketingCarrier', {}).get('AirlineID', None),
-            'Marketing Flight Number': status.get('MarketingCarrier', {}).get('FlightNumber', None),
-            'Aircraft Code': status.get('Equipment', {}).get('AircraftCode', None),
-            'Aircraft Registration': status.get('Equipment', {}).get('AircraftRegistration', None),
-            'Flight Status Code': status.get('FlightStatus', {}).get('Code', None),
-            'Flight Status Definition': status.get('FlightStatus', {}).get('Definition', None)
+            'DepartureDate': departure_date,
+            'DepartureAirportCode': status.get('Departure', {}).get('AirportCode', None),
+            'ScheduledDepartureLocalTime': status.get('Departure', {}).get('ScheduledTimeLocal', {}).get('DateTime', None),
+            'ActualDepartureLocalTime': status.get('Departure', {}).get('ActualTimeLocal', {}).get('DateTime', None),
+            'DepartureTerminal': status.get('Departure', {}).get('Terminal', {}).get('Name', None),
+            'DepartureGate': status.get('Departure', {}).get('Terminal', {}).get('Gate', None),
+            'ArrivalAirportCode': status.get('Arrival', {}).get('AirportCode', None),
+            'ScheduledArrivalLocalTime': status.get('Arrival', {}).get('ScheduledTimeLocal', {}).get('DateTime', None),
+            'ActualArrivalLocalTime': status.get('Arrival', {}).get('ActualTimeLocal', {}).get('DateTime', None),
+            'ArrivalTerminal': status.get('Arrival', {}).get('Terminal', {}).get('Name', None),
+            'ArrivalGate': status.get('Arrival', {}).get('Terminal', {}).get('Gate', None),
+            'TimeStatusCode': status.get('Departure', {}).get('TimeStatus', {}).get('Code', None),
+            'TimeStatusDefinition': status.get('Departure', {}).get('TimeStatus', {}).get('Definition', None),
+            'MarketingAirlineID': status.get('MarketingCarrier', {}).get('AirlineID', None),
+            'MarketingFlight Number': status.get('MarketingCarrier', {}).get('FlightNumber', None),
+            'AircraftCode': status.get('Equipment', {}).get('AircraftCode', None),
+            'AircraftRegistration': status.get('Equipment', {}).get('AircraftRegistration', None),
+            'FlightStatusCode': status.get('FlightStatus', {}).get('Code', None),
+            'FlightStatusDefinition': status.get('FlightStatus', {}).get('Definition', None)
         })
 
     return status_flight_info
@@ -57,8 +57,8 @@ def process_flight_status_workflow(schedules_df, headers):
     status_flight_info = []
 
     for index, row in schedules_df.iterrows():
-        flight_number = row['schedule_id']
-        departure_date = extract_date(row['DateTime Dep'])
+        flight_number = row['ScheduleID']
+        departure_date = extract_date(row['DepartureTime'])
 
         flight_status_data = fetch_flight_status(flight_number, departure_date, headers)
 

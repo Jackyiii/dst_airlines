@@ -32,3 +32,8 @@ def test_connection():
             print("Error executing test query:", e)
         finally:
             connection.close()
+
+
+
+
+
