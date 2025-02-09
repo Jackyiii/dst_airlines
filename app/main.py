@@ -2,22 +2,20 @@
 import pandas as pd
 import requests
 import os
-from sqlalchemy import create_engine
-import psycopg2
 from io import StringIO
-from api.data.aircraft_data import process_aircraft_data_workflow
-from api.data.airline_data import process_airline_data_workflow
-from api.data.airport_data import process_airport_data_workflow
-from api.auth import get_access_token
-from api.data.city_data import process_city_data_workflow
-from api.data.county_data import process_country_data_workflow
-from api.data.schedules_data import process_schedules_workflow
+from processing.data.aircraft_data import process_aircraft_data_workflow
+from processing.data.airline_data import process_airline_data_workflow
+from processing.data.airport_data import process_airport_data_workflow
+from processing.auth import get_access_token
+from processing.data.city_data import process_city_data_workflow
+from processing.data.county_data import process_country_data_workflow
+from processing.data.schedules_data import process_schedules_workflow
 from config.url import COUNTRY_DATA_URLS, CITY_DATA_URLS, AIRPORT_DATA_URLS, AIRLINE_DATA_URLS, \
     AIRCRAFT_DATA_URLS, DATES, DESTINATIONS, ORIGINS, generate_schedule_urls
-from api.data.flight_status import process_flight_status_workflow
-from config.database import get_connection, test_connection
+from processing.data.flight_status import process_flight_status_workflow
+from database.connect import get_connection, test_connection
 from config.region_mapping import region_mapping
-
+from sqlalchemy import create_engine
 def process_all_data(headers):
     """
     Process all data workflows and return a dictionary of DataFrames.
@@ -74,6 +72,12 @@ def main():
         return
 
     headers = {'Authorization': f'Bearer {access_token}', 'Accept': 'application/json'}
+    # Configuration des paramètres de la base de données
+    DATABASE_URL = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@db:5432/{os.getenv('POSTGRES_DB')}"
+    # DATABASE_URL  = 'postgresql://myuser:mypassword@db:5432/mydatabase'
+    # print(DATABASE_URL)
+    # Créer une connexion SQLAlchemy
+    engine = create_engine(DATABASE_URL)
     dataframes = process_all_data(headers)
     try:
         dataframes['languages'] = process_languages_data()
@@ -82,15 +86,13 @@ def main():
 
     for table_name, dataframe in dataframes.items():
         insert_dataframe_to_sql(dataframe, table_name, engine)
-    print("finish execution for DataFrame insertion")
+    #print("finish execution for DataFrame insertion")
 
 
-# Configuration des paramètres de la base de données
-#DATABASE_URL = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@db:5432/{os.getenv('POSTGRES_DB')}"
-DATABASE_URL  = 'postgresql://myuser:mypassword@db:5432/mydatabase'
-print(DATABASE_URL)
-# Créer une connexion SQLAlchemy
-engine = create_engine(DATABASE_URL)
+
+
+def get_engine():
+    return engine
 
 # Fonction générique pour insérer un DataFrame dans une table PostgreSQL
 def insert_dataframe_to_sql(dataframe, table_name, engine):
@@ -105,7 +107,7 @@ def insert_dataframe_to_sql(dataframe, table_name, engine):
     try:
         # Insérer les données
         dataframe.to_sql(table_name, con=engine, if_exists='append', index=False)
-        print(f"Inserted {len(dataframe)} rows into {table_name}")
+        #print(f"Inserted {len(dataframe)} rows into {table_name}")
     except Exception as e:
         print(f"Error inserting data into {table_name}: {e}")
 

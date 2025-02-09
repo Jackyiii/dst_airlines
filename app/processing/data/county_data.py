@@ -69,8 +69,8 @@ def process_country_data_workflow(headers, urls):
     country_df = create_country_dataframe(all_country_info)
 
     # Print the DataFrame
-    print("")
-    print('1- données pays')
-    print(country_df.head())
-    print("")
+    #print("")
+    #print('1- données pays')
+    #print(country_df.head())
+   # print("")
     return country_df

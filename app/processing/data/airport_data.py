@@ -1,6 +1,10 @@
 import requests
 import pandas as pd
 
+from ...database.getData import get_airport_data_from_database
+# from ...main import get_engine
+
+
 def fetch_airport_data(url, headers):
     try:
         response = requests.get(url, headers=headers)
@@ -72,11 +76,16 @@ def process_airport_data_workflow(headers, urls):
 
     # Create DataFrame from all airport info
     airport_df = create_airport_dataframe(all_airport_info)
+    # GET data from database airport table
+
+    airport_df_from_database = get_airport_data_from_database.get_airport(get_engine())
+    print("-----test data from database-----")
+    print(airport_df_from_database)
     #exlure la colonne 'LocationType'
-   
-    print("")
-    print("3-Données Aeroports")
-    print(airport_df.head())
-    print("")
+
+    #print("")
+   # print("3-Données Aeroports")
+    #print(airport_df.head())
+    #print("")
 
     return airport_df

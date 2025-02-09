@@ -222,9 +222,9 @@ if response.status_code == 200:
     languages_df=languages_df[['LanguageCode','LanguageName','Region']]
 
     # Affichage du DataFrame avec la nouvelle colonne
-    print(languages_df.head())
+    #print(languages_df.head())
 
     # Affichage de la forme du DataFrame et des premières lignes pour vérification
-    print(languages_df.shape)
+    #print(languages_df.shape)
 else:
-    print("Erreur lors du téléchargement du fichier CSV :", response.status_code)
+     print("Erreur lors du téléchargement du fichier CSV :", response.status_code)

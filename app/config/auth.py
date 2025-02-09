@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
-from config.url import TOKEN_URL
+
 
 load_dotenv()
 

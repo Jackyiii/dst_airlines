@@ -86,10 +86,10 @@ def process_city_data_workflow(headers, urls):
     city_df = create_city_dataframe(all_city_info)
     #selection des colonnes qui nous interresse
     city_df_used=city_df.iloc[:, 0:6]
-    print("")
-    print('2- données villes')
+    #print("")
+    #print('2- données villes')
     # Print the DataFrame
-    print(city_df.head())
-    print("")
+    #print(city_df.head())
+    #print("")
     return city_df
  
