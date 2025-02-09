@@ -1,4 +1,4 @@
-
+import matplotlib
 import pandas as pd
 import requests
 import os
@@ -17,7 +17,9 @@ from config.url import COUNTRY_DATA_URLS, CITY_DATA_URLS, AIRPORT_DATA_URLS, AIR
 from api.data.flight_status import process_flight_status_workflow
 from config.database import get_connection, test_connection
 from config.region_mapping import region_mapping
-
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+matplotlib.use('TkAgg')
 def process_all_data(headers):
     """
     Process all data workflows and return a dictionary of DataFrames.
@@ -84,7 +86,30 @@ def main():
         insert_dataframe_to_sql(dataframe, table_name, engine)
     print("finish execution for DataFrame insertion")
 
+    query = "SELECT * FROM airport"
+    df = pd.read_sql(query, engine)
+    df_unique = df.drop_duplicates(subset=['AirportCode']).reset_index(drop=True)
+    df_unique['Latitude'] = pd.to_numeric(df_unique['Latitude'], errors='coerce')
+    df_unique['Longitude'] = pd.to_numeric(df_unique['Longitude'], errors='coerce')
+    df_unique = df_unique.dropna(subset=['Latitude', 'Longitude'])
+    n_clusters = 5
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    coords = df_unique[['Latitude', 'Longitude']]
+    df_unique['Cluster'] = kmeans.fit_predict(coords)
+    print("\n每个簇中的机场数量：")
+    print(df_unique['Cluster'].value_counts())
 
+    # 5. 可视化聚类结果
+    plt.figure(figsize=(8, 6))
+    plt.scatter(df_unique['Longitude'], df_unique['Latitude'],
+                c=df_unique['Cluster'], cmap='viridis', alpha=0.7, edgecolors='k')
+    plt.title('基于地理坐标的机场聚类')
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    plt.colorbar(label='Cluster')
+    plt.grid(True)
+    plt.savefig('airport_clusters.png')
+    plt.show()
 # Configuration des paramètres de la base de données
 #DATABASE_URL = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@db:5432/{os.getenv('POSTGRES_DB')}"
 DATABASE_URL  = 'postgresql://myuser:mypassword@db:5432/mydatabase'
