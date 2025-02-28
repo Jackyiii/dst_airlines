@@ -8,4 +8,4 @@ CREATE TABLE city (
     AirportCode VARCHAR(10),
     FOREIGN KEY (CountryCode) REFERENCES country(CountryCode),
     FOREIGN KEY (LanguageCode) REFERENCES languages(LanguageCode)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

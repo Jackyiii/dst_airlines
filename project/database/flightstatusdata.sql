@@ -2,13 +2,13 @@ CREATE TABLE status_flight (
     FlightNumber VARCHAR(50) PRIMARY KEY,
     DepartureDate DATE NOT NULL,
     DepartureAirportCode VARCHAR(10) NOT NULL,
-    ScheduledDepartureLocalTime TIMESTAMP NOT NULL,
-    ActualDepartureLocalTime TIMESTAMP,
+    ScheduledDepartureLocalTime DATETIME NOT NULL,
+    ActualDepartureLocalTime DATETIME,
     DepartureTerminal VARCHAR(50),
     DepartureGate VARCHAR(50),
     ArrivalAirportCode VARCHAR(10) NOT NULL,
-    ScheduledArrivalLocalTime TIMESTAMP NOT NULL,
-    ActualArrivalLocalTime TIMESTAMP,
+    ScheduledArrivalLocalTime DATETIME NOT NULL,
+    ActualArrivalLocalTime DATETIME,
     ArrivalTerminal VARCHAR(50),
     ArrivalGate VARCHAR(50),
     TimeStatusCode VARCHAR(10),
@@ -23,4 +23,4 @@ CREATE TABLE status_flight (
     FOREIGN KEY (ArrivalAirportCode) REFERENCES airport(AirportCode),
     FOREIGN KEY (MarketingAirlineID) REFERENCES airline(AirlineID),
     FOREIGN KEY (AircraftCode) REFERENCES aircraft(AircraftCode)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
