@@ -43,7 +43,7 @@ def process_all_data(headers):
     dataframes['status_flight'] = process_flight_status_workflow(schedules_df, headers)
     return dataframes
 
-def process_languages_data():
+def process_languages_data() -> pd.DataFrame:
     """
     Download and process language data.
     """
@@ -86,30 +86,7 @@ def main():
         insert_dataframe_to_sql(dataframe, table_name, engine)
     print("finish execution for DataFrame insertion")
 
-    query = "SELECT * FROM airport"
-    df = pd.read_sql(query, engine)
-    df_unique = df.drop_duplicates(subset=['AirportCode']).reset_index(drop=True)
-    df_unique['Latitude'] = pd.to_numeric(df_unique['Latitude'], errors='coerce')
-    df_unique['Longitude'] = pd.to_numeric(df_unique['Longitude'], errors='coerce')
-    df_unique = df_unique.dropna(subset=['Latitude', 'Longitude'])
-    n_clusters = 5
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    coords = df_unique[['Latitude', 'Longitude']]
-    df_unique['Cluster'] = kmeans.fit_predict(coords)
-    print("\n每个簇中的机场数量：")
-    print(df_unique['Cluster'].value_counts())
 
-    # 5. 可视化聚类结果
-    plt.figure(figsize=(8, 6))
-    plt.scatter(df_unique['Longitude'], df_unique['Latitude'],
-                c=df_unique['Cluster'], cmap='viridis', alpha=0.7, edgecolors='k')
-    plt.title('基于地理坐标的机场聚类')
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
-    plt.colorbar(label='Cluster')
-    plt.grid(True)
-    plt.savefig('airport_clusters.png')
-    plt.show()
 # Configuration des paramètres de la base de données
 #DATABASE_URL = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@db:5432/{os.getenv('POSTGRES_DB')}"
 DATABASE_URL  = 'postgresql://myuser:mypassword@db:5432/mydatabase'
@@ -129,7 +106,7 @@ def insert_dataframe_to_sql(dataframe, table_name, engine):
     """
     try:
         # Insérer les données
-        dataframe.to_sql(table_name, con=engine, if_exists='append', index=False)
+        dataframe.to_sql(table_name, con=engine, if_exists='append', index=False,hunksize=5000)
         print(f"Inserted {len(dataframe)} rows into {table_name}")
     except Exception as e:
         print(f"Error inserting data into {table_name}: {e}")
