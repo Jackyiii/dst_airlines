@@ -17,9 +17,7 @@ from config.url import COUNTRY_DATA_URLS, CITY_DATA_URLS, AIRPORT_DATA_URLS, AIR
 from api.data.flight_status import process_flight_status_workflow
 from config.database import get_connection, test_connection
 from config.region_mapping import region_mapping
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-matplotlib.use('TkAgg')
+
 def process_all_data(headers):
     """
     Process all data workflows and return a dictionary of DataFrames.
