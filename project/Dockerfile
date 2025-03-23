@@ -1,21 +1,24 @@
 FROM python:3.11-slim
 
+# Installation des dépendances système nécessaires
 RUN apt-get update && apt-get install -y \
     libpq-dev gcc && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /log
+# Définition du répertoire de travail
+WORKDIR /app
 
+# Optimisation du cache Docker : installation des dépendances en premier
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copier le reste des fichiers après installation des dépendances
 COPY . .
 
+# Appliquer les permissions AVANT de changer d'utilisateur
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
-RUN pip install --upgrade pip
 
-RUN pip install --no-cache-dir -r requirements.txt
-#RUN pip3 install --no-cache-dir -r requirements.txt
-RUN pip install sqlalchemy
-
-
-CMD ["/start.sh"]
-#ENTRYPOINT ["python", "main.py"]
+# Gestion des permissions et sécurité
+RUN adduser --disabled-password --gecos '' appuser
+USER appuser

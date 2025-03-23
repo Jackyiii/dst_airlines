@@ -2,6 +2,7 @@
 import psycopg2
 import pandas as pd
 import numpy as np
+from IPython.display import display
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -11,7 +12,12 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from dateutil.parser import isoparse
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve
 import joblib
+import os
 # Configuration de la connexion PostgreSQL
 DB_CONFIG = {
     "dbname": "mydatabase",
@@ -264,7 +270,51 @@ y_pred_lr_arr = lr_pipeline.predict(X_test)
 print(classification_report(y_test_arr, y_pred_lr_arr))
 
 
-#enregisgtrement des modeles
+#  Définition du répertoire de sauvegarde
+MODELS_DIR = r"C:\Users\Utilisateur\Documents"
+os.makedirs(MODELS_DIR, exist_ok=True)
+# Définition des chemins d'enregistrement
+rf_model_path = os.path.join(MODELS_DIR, "random_forest.pkl")
+lr_model_path = os.path.join(MODELS_DIR, "logistic_regression.pkl")
 
-#joblib.dump(rf_pipeline, f"{MODELS_DIR}/model.pkl")
-#model = joblib.load(f"{MODELS_DIR}/model.pkl")
+# Enregistrement des modèles
+joblib.dump(rf_pipeline, rf_model_path)
+joblib.dump(lr_pipeline, lr_model_path)
+
+print(f"Modèle RandomForest enregistré à : {rf_model_path}")
+print(f"Modèle LogisticRegression enregistré à : {lr_model_path}")
+
+
+#extraction de la matrice de confusion
+
+def plot_model_performance(y_true, y_pred, model_name, labels=["Pas de retard", "Retard"]):
+    """
+    Affiche la matrice de confusion et le rapport de classification pour un modèle donné.
+
+    Paramètres :
+    - y_true : Valeurs réelles des classes.
+    - y_pred : Prédictions du modèle.
+    - model_name : Nom du modèle (string) pour l'affichage.
+    - labels : Liste des labels pour l'affichage de la matrice de confusion.
+    """
+    # Calcul de la matrice de confusion
+    cm = confusion_matrix(y_true, y_pred)
+
+    # Affichage de la matrice de confusion
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
+    plt.xlabel("Prédictions")
+    plt.ylabel("Vraies valeurs")
+    plt.title(f"Matrice de confusion - {model_name}")
+    plt.show()
+
+    # Affichage du rapport de classification
+    print(f"Rapport de classification pour {model_name} :\n")
+    print(classification_report(y_true, y_pred))
+
+
+# Exemple d'utilisation avec RandomForest (prédiction du retard au départ)
+plot_model_performance(y_test_dep, y_pred_rf_dep, "RandomForest - Retard au départ")
+
+# Exemple d'utilisation avec Logistic Regression (prédiction du retard à l'arrivée)
+plot_model_performance(y_test_arr, y_pred_lr_arr, "Logistic Regression - Retard à l'arrivée")
