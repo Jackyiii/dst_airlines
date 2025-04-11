@@ -104,7 +104,7 @@ def insert_dataframe_to_sql(dataframe, table_name, engine):
     """
     try:
         # Insérer les données
-        dataframe.to_sql(table_name, con=engine, if_exists='append', index=False,hunksize=5000)
+        dataframe.to_sql(table_name, con=engine, if_exists='append', index=False,chunksize=5000)
         print(f"Inserted {len(dataframe)} rows into {table_name}")
     except Exception as e:
         print(f"Error inserting data into {table_name}: {e}")

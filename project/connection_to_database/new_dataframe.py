@@ -271,7 +271,9 @@ print(classification_report(y_test_arr, y_pred_lr_arr))
 
 
 #  Définition du répertoire de sauvegarde
-MODELS_DIR = r"C:\Users\Utilisateur\Documents"
+
+#MODELS_DIR = r"C:\Users\Utilisateur\Documents"
+MODELS_DIR = r"E:\formation_data_scientest\Data_engineer\projet_lufthansa"
 os.makedirs(MODELS_DIR, exist_ok=True)
 # Définition des chemins d'enregistrement
 rf_model_path = os.path.join(MODELS_DIR, "random_forest.pkl")
