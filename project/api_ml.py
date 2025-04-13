@@ -4,19 +4,24 @@ import pandas as pd
 import os
 from pydantic import BaseModel
 
-# Chemin du modèle dans le container Docker
-MODEL_PATH = os.path.join("models", "random_forest.pkl")
+# Chemins des modèles
+MODEL_DEPART_PATH = os.path.join("models", "random_forest_depart.pkl")
+MODEL_ARRIVEE_PATH = os.path.join("models", "random_forest_arrivee.pkl")
 
-# Vérifier que le modèle existe
-if not os.path.exists(MODEL_PATH):
-    raise FileNotFoundError(f"Le fichier du modèle est introuvable à l'emplacement : {MODEL_PATH}")
+# Vérification des fichiers modèles
+if not os.path.exists(MODEL_DEPART_PATH):
+    raise FileNotFoundError(f"Modèle 'random_forest_depart.pkl' introuvable à : {MODEL_DEPART_PATH}")
+if not os.path.exists(MODEL_ARRIVEE_PATH):
+    raise FileNotFoundError(f"Modèle 'random_forest_arrivee.pkl' introuvable à : {MODEL_ARRIVEE_PATH}")
 
-# Charger le modèle
-model = joblib.load(MODEL_PATH)
+# Chargement des modèles
+model_depart = joblib.load(MODEL_DEPART_PATH)
+model_arrivee = joblib.load(MODEL_ARRIVEE_PATH)
 
-# FastAPI init
-app = FastAPI(title="API de Prédiction de Retard de Vols")
+# Initialisation de l'API
+app = FastAPI(title="API Prédiction Retards Vols")
 
+# Schéma d'entrée
 class FlightData(BaseModel):
     DepartureDayOfWeekNumber: str
     DepartureAirportCode: str
@@ -28,13 +33,19 @@ class FlightData(BaseModel):
     ActualArrivalDayOfWeekNumber: str
     ScheduledDepartureDayOfWeekNumber: str
     ScheduledArrivalDayOfWeekNumber: str
-    DurationMinutes: float  
+    DurationMinutes: float
 
 @app.post("/predict")
-def predict_delay(data: FlightData):
+def predict_delays(data: FlightData):
     try:
         df_input = pd.DataFrame([data.dict()])
-        prediction = model.predict(df_input)
-        return {"prediction": int(prediction[0])}
+        
+        pred_depart = model_depart.predict(df_input)[0]
+        pred_arrivee = model_arrivee.predict(df_input)[0]
+
+        return {
+            "departure_delay_prediction": int(pred_depart),
+            "arrival_delay_prediction": int(pred_arrivee)
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la prédiction: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la prédiction : {str(e)}")
