@@ -276,15 +276,16 @@ print(classification_report(y_test_arr, y_pred_lr_arr))
 MODELS_DIR = r"E:\formation_data_scientest\Data_engineer\projet_lufthansa"
 os.makedirs(MODELS_DIR, exist_ok=True)
 # Définition des chemins d'enregistrement
-rf_model_path = os.path.join(MODELS_DIR, "random_forest.pkl")
+rf_model_depart_path = os.path.join(MODELS_DIR, "random_forest_depart.pkl")
+rf_model_arrivee_path = os.path.join(MODELS_DIR, "random_forest_arrivee.pkl")
 lr_model_path = os.path.join(MODELS_DIR, "logistic_regression.pkl")
 
 # Enregistrement des modèles
-joblib.dump(rf_pipeline, rf_model_path)
-joblib.dump(lr_pipeline, lr_model_path)
+joblib.dump(rf_pipeline, rf_model_depart_path)
+joblib.dump(rf_pipeline, rf_model_arrivee_path)
 
-print(f"Modèle RandomForest enregistré à : {rf_model_path}")
-print(f"Modèle LogisticRegression enregistré à : {lr_model_path}")
+print(f"Modèle RandomForest (retard au départ) enregistré à : {rf_model_depart_path}")
+print(f"Modèle RandomForest (retard à l'arrivée) enregistré à : {rf_model_arrivee_path}")
 
 
 #extraction de la matrice de confusion
