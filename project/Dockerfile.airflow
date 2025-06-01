@@ -1,0 +1,35 @@
+FROM apache/airflow:2.7.3-python3.11
+
+# Passage en mode root pour installer les dépendances
+USER root
+
+# Installation des dépendances système avec une stratégie de repli en cas d'échec
+RUN apt-get update && apt-get install -y --fix-missing \
+    build-essential \
+    default-libmysqlclient-dev \
+    libpq-dev \
+    git \
+    curl \
+    || (sleep 30 && apt-get install -y --fix-missing \
+    build-essential \
+    default-libmysqlclient-dev \
+    libpq-dev \
+    git \
+    curl) \
+    && apt-get clean
+
+# ✅ Configuration du fuseau horaire UTC
+RUN ln -snf /usr/share/zoneinfo/Etc/UTC /etc/localtime && echo "Etc/UTC" > /etc/timezone
+
+# Revenir à l'utilisateur airflow
+USER airflow
+
+# Copier le fichier requirements.txt
+COPY requirements.txt /requirements.txt
+
+# Installer les dépendances Python
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r /requirements.txt
+
+# 🔁 Ajout du PYTHONPATH pour inclure le dossier racine et connection_to_database
+ENV PYTHONPATH="${PYTHONPATH}:/opt/airflow/project_root:/opt/airflow/project_root/connection_to_database"
